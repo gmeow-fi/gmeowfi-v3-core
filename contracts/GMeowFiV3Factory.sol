@@ -8,9 +8,10 @@ import './NoDelegateCall.sol';
 
 import './GMeowFiV3Pool.sol';
 
-/// @title Canonical Uniswap V3 factory
-/// @notice Deploys Uniswap V3 pools and manages ownership and control over pool protocol fees
+/// @title Canonical GMeowFi V3 factory
+/// @notice Deploys GMeowFi V3 pools and manages ownership and control over pool protocol fees
 contract GMeowFiV3Factory is IGMeowFiV3Factory, GMeowFiV3PoolDeployer, NoDelegateCall {
+    bytes32 public constant INIT_CODE_POOL_HASH = keccak256(abi.encodePacked(type(GMeowFiV3Pool).creationCode));
     /// @inheritdoc IGMeowFiV3Factory
     address public override owner;
 
