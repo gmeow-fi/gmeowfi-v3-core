@@ -282,7 +282,7 @@ contract GMeowFiV3Pool is IUniswapV3Pool, NoDelegateCall {
             observationIndex: 0,
             observationCardinality: cardinality,
             observationCardinalityNext: cardinalityNext,
-            feeProtocol: 0,
+            feeProtocol: 34,
             unlocked: true
         });
 
