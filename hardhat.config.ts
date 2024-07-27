@@ -1,68 +1,53 @@
-import 'hardhat-typechain'
-import '@nomiclabs/hardhat-ethers'
-import '@nomiclabs/hardhat-waffle'
-import '@nomiclabs/hardhat-etherscan'
+import { HardhatUserConfig } from 'hardhat/config'
+import '@nomicfoundation/hardhat-toolbox'
+import * as dotenv from 'dotenv'
+dotenv.config()
 
-export default {
+const config: HardhatUserConfig = {
+  solidity: {
+    compilers: [
+      {
+        version: '0.7.6',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 0,
+          },
+        },
+      },
+    ],
+  },
   networks: {
-    hardhat: {
-      allowUnlimitedContractSize: false,
+    ganache: {
+      url: 'http://localhost:8545',
+      gasPrice: 20000000000,
+      accounts: [process.env.GANACHE_PRIVATE_KEY || ''],
     },
-    mainnet: {
-      url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    ropsten: {
-      url: `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    rinkeby: {
-      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    goerli: {
-      url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    kovan: {
-      url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    arbitrumRinkeby: {
-      url: `https://arbitrum-rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    arbitrum: {
-      url: `https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    optimismKovan: {
-      url: `https://optimism-kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    optimism: {
-      url: `https://optimism-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    mumbai: {
-      url: `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    polygon: {
-      url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    bnb: {
-      url: `https://bsc-dataseed.binance.org/`,
+    // for Sepolia testnet
+    zircuitTestnet: {
+      url: `https://zircuit1.p2pify.com/`,
+      accounts: [process.env.ZIRCUIT_TESTNET_PRIVATE_KEY || ''],
+      gasPrice: 3000000000,
     },
   },
   etherscan: {
-    // Your API key for Etherscan
-    // Obtain one at https://etherscan.io/
-    apiKey: process.env.ETHERSCAN_API_KEY,
-  },
-  solidity: {
-    version: '0.7.6',
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 800,
-      },
-      metadata: {
-        // do not include the metadata hash, since this is machine dependent
-        // and we want all generated code to be deterministic
-        // https://docs.soliditylang.org/en/v0.7.6/metadata.html
-        bytecodeHash: 'none',
-      },
+    apiKey: {
+      zircuitTestnet: process.env.SCAN_API_KEY || '',
     },
+    customChains: [
+      {
+        network: 'zircuitTestnet',
+        chainId: 48899,
+        urls: {
+          apiURL: 'https://explorer.zircuit.com/api/contractVerifyHardhat',
+          browserURL: 'https://explorer.zircuit.com',
+        },
+      },
+    ],
+  },
+  sourcify: {
+    enabled: false,
   },
 }
+
+export default config
