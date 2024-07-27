@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity =0.7.6;
 
-import './interfaces/IUniswapV3Pool.sol';
+import './interfaces/IGMeowFiV3Pool.sol';
 
 import './NoDelegateCall.sol';
 
@@ -20,14 +20,14 @@ import './libraries/LiquidityMath.sol';
 import './libraries/SqrtPriceMath.sol';
 import './libraries/SwapMath.sol';
 
-import './interfaces/IUniswapV3PoolDeployer.sol';
-import './interfaces/IUniswapV3Factory.sol';
+import './interfaces/IGMeowFiV3PoolDeployer.sol';
+import './interfaces/IGMeowFiV3Factory.sol';
 import './interfaces/IERC20Minimal.sol';
 import './interfaces/callback/IUniswapV3MintCallback.sol';
 import './interfaces/callback/IUniswapV3SwapCallback.sol';
 import './interfaces/callback/IUniswapV3FlashCallback.sol';
 
-contract GMeowFiV3Pool is IUniswapV3Pool, NoDelegateCall {
+contract GMeowFiV3Pool is IGMeowFiV3Pool, NoDelegateCall {
     using LowGasSafeMath for uint256;
     using LowGasSafeMath for int256;
     using SafeCast for uint256;
@@ -38,19 +38,19 @@ contract GMeowFiV3Pool is IUniswapV3Pool, NoDelegateCall {
     using Position for Position.Info;
     using Oracle for Oracle.Observation[65535];
 
-    /// @inheritdoc IUniswapV3PoolImmutables
+    /// @inheritdoc IGMeowFiV3PoolImmutables
     address public immutable override factory;
-    /// @inheritdoc IUniswapV3PoolImmutables
+    /// @inheritdoc IGMeowFiV3PoolImmutables
     address public immutable override token0;
-    /// @inheritdoc IUniswapV3PoolImmutables
+    /// @inheritdoc IGMeowFiV3PoolImmutables
     address public immutable override token1;
-    /// @inheritdoc IUniswapV3PoolImmutables
+    /// @inheritdoc IGMeowFiV3PoolImmutables
     uint24 public immutable override fee;
 
-    /// @inheritdoc IUniswapV3PoolImmutables
+    /// @inheritdoc IGMeowFiV3PoolImmutables
     int24 public immutable override tickSpacing;
 
-    /// @inheritdoc IUniswapV3PoolImmutables
+    /// @inheritdoc IGMeowFiV3PoolImmutables
     uint128 public immutable override maxLiquidityPerTick;
 
     struct Slot0 {
@@ -70,12 +70,12 @@ contract GMeowFiV3Pool is IUniswapV3Pool, NoDelegateCall {
         // whether the pool is locked
         bool unlocked;
     }
-    /// @inheritdoc IUniswapV3PoolState
+    /// @inheritdoc IGMeowFiV3PoolState
     Slot0 public override slot0;
 
-    /// @inheritdoc IUniswapV3PoolState
+    /// @inheritdoc IGMeowFiV3PoolState
     uint256 public override feeGrowthGlobal0X128;
-    /// @inheritdoc IUniswapV3PoolState
+    /// @inheritdoc IGMeowFiV3PoolState
     uint256 public override feeGrowthGlobal1X128;
 
     // accumulated protocol fees in token0/token1 units
@@ -83,19 +83,19 @@ contract GMeowFiV3Pool is IUniswapV3Pool, NoDelegateCall {
         uint128 token0;
         uint128 token1;
     }
-    /// @inheritdoc IUniswapV3PoolState
+    /// @inheritdoc IGMeowFiV3PoolState
     ProtocolFees public override protocolFees;
 
-    /// @inheritdoc IUniswapV3PoolState
+    /// @inheritdoc IGMeowFiV3PoolState
     uint128 public override liquidity;
 
-    /// @inheritdoc IUniswapV3PoolState
+    /// @inheritdoc IGMeowFiV3PoolState
     mapping(int24 => Tick.Info) public override ticks;
-    /// @inheritdoc IUniswapV3PoolState
+    /// @inheritdoc IGMeowFiV3PoolState
     mapping(int16 => uint256) public override tickBitmap;
-    /// @inheritdoc IUniswapV3PoolState
+    /// @inheritdoc IGMeowFiV3PoolState
     mapping(bytes32 => Position.Info) public override positions;
-    /// @inheritdoc IUniswapV3PoolState
+    /// @inheritdoc IGMeowFiV3PoolState
     Oracle.Observation[65535] public override observations;
 
     /// @dev Mutually exclusive reentrancy protection into the pool to/from a method. This method also prevents entrance
@@ -108,15 +108,15 @@ contract GMeowFiV3Pool is IUniswapV3Pool, NoDelegateCall {
         slot0.unlocked = true;
     }
 
-    /// @dev Prevents calling a function from anyone except the address returned by IUniswapV3Factory#owner()
+    /// @dev Prevents calling a function from anyone except the address returned by IGMeowFiV3Factory#owner()
     modifier onlyFactoryOwner() {
-        require(msg.sender == IUniswapV3Factory(factory).owner());
+        require(msg.sender == IGMeowFiV3Factory(factory).owner());
         _;
     }
 
     constructor() {
         int24 _tickSpacing;
-        (factory, token0, token1, fee, _tickSpacing) = IUniswapV3PoolDeployer(msg.sender).parameters();
+        (factory, token0, token1, fee, _tickSpacing) = IGMeowFiV3PoolDeployer(msg.sender).parameters();
         tickSpacing = _tickSpacing;
 
         maxLiquidityPerTick = Tick.tickSpacingToMaxLiquidityPerTick(_tickSpacing);
@@ -156,7 +156,7 @@ contract GMeowFiV3Pool is IUniswapV3Pool, NoDelegateCall {
         return abi.decode(data, (uint256));
     }
 
-    /// @inheritdoc IUniswapV3PoolDerivedState
+    /// @inheritdoc IGMeowFiV3PoolDerivedState
     function snapshotCumulativesInside(
         int24 tickLower,
         int24 tickUpper
@@ -232,7 +232,7 @@ contract GMeowFiV3Pool is IUniswapV3Pool, NoDelegateCall {
         }
     }
 
-    /// @inheritdoc IUniswapV3PoolDerivedState
+    /// @inheritdoc IGMeowFiV3PoolDerivedState
     function observe(
         uint32[] calldata secondsAgos
     )
@@ -253,7 +253,7 @@ contract GMeowFiV3Pool is IUniswapV3Pool, NoDelegateCall {
             );
     }
 
-    /// @inheritdoc IUniswapV3PoolActions
+    /// @inheritdoc IGMeowFiV3PoolActions
     function increaseObservationCardinalityNext(
         uint16 observationCardinalityNext
     ) external override lock noDelegateCall {
@@ -267,7 +267,7 @@ contract GMeowFiV3Pool is IUniswapV3Pool, NoDelegateCall {
             emit IncreaseObservationCardinalityNext(observationCardinalityNextOld, observationCardinalityNextNew);
     }
 
-    /// @inheritdoc IUniswapV3PoolActions
+    /// @inheritdoc IGMeowFiV3PoolActions
     /// @dev not locked because it initializes unlocked
     function initialize(uint160 sqrtPriceX96) external override {
         require(slot0.sqrtPriceX96 == 0, 'AI');
@@ -451,7 +451,7 @@ contract GMeowFiV3Pool is IUniswapV3Pool, NoDelegateCall {
         }
     }
 
-    /// @inheritdoc IUniswapV3PoolActions
+    /// @inheritdoc IGMeowFiV3PoolActions
     /// @dev noDelegateCall is applied indirectly via _modifyPosition
     function mint(
         address recipient,
@@ -484,7 +484,7 @@ contract GMeowFiV3Pool is IUniswapV3Pool, NoDelegateCall {
         emit Mint(msg.sender, recipient, tickLower, tickUpper, amount, amount0, amount1);
     }
 
-    /// @inheritdoc IUniswapV3PoolActions
+    /// @inheritdoc IGMeowFiV3PoolActions
     function collect(
         address recipient,
         int24 tickLower,
@@ -510,7 +510,7 @@ contract GMeowFiV3Pool is IUniswapV3Pool, NoDelegateCall {
         emit Collect(msg.sender, recipient, tickLower, tickUpper, amount0, amount1);
     }
 
-    /// @inheritdoc IUniswapV3PoolActions
+    /// @inheritdoc IGMeowFiV3PoolActions
     /// @dev noDelegateCall is applied indirectly via _modifyPosition
     function burn(
         int24 tickLower,
@@ -589,7 +589,7 @@ contract GMeowFiV3Pool is IUniswapV3Pool, NoDelegateCall {
         uint256 feeAmount;
     }
 
-    /// @inheritdoc IUniswapV3PoolActions
+    /// @inheritdoc IGMeowFiV3PoolActions
     function swap(
         address recipient,
         bool zeroForOne,
@@ -780,7 +780,7 @@ contract GMeowFiV3Pool is IUniswapV3Pool, NoDelegateCall {
         slot0.unlocked = true;
     }
 
-    /// @inheritdoc IUniswapV3PoolActions
+    /// @inheritdoc IGMeowFiV3PoolActions
     function flash(
         address recipient,
         uint256 amount0,
@@ -826,7 +826,7 @@ contract GMeowFiV3Pool is IUniswapV3Pool, NoDelegateCall {
         emit Flash(msg.sender, recipient, amount0, amount1, paid0, paid1);
     }
 
-    /// @inheritdoc IUniswapV3PoolOwnerActions
+    /// @inheritdoc IGMeowFiV3PoolOwnerActions
     function setFeeProtocol(uint8 feeProtocol0, uint8 feeProtocol1) external override lock onlyFactoryOwner {
         require(
             (feeProtocol0 == 0 || (feeProtocol0 >= 2 && feeProtocol0 <= 10)) &&
@@ -837,7 +837,7 @@ contract GMeowFiV3Pool is IUniswapV3Pool, NoDelegateCall {
         emit SetFeeProtocol(feeProtocolOld % 16, feeProtocolOld >> 4, feeProtocol0, feeProtocol1);
     }
 
-    /// @inheritdoc IUniswapV3PoolOwnerActions
+    /// @inheritdoc IGMeowFiV3PoolOwnerActions
     function collectProtocol(
         address recipient,
         uint128 amount0Requested,
